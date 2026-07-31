@@ -1,26 +1,26 @@
-﻿using System;
+﻿#pragma warning disable SYSLIB1045
+
+using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
 using System.Text.RegularExpressions;
 using System.Web;
-using System.Windows.Forms;
 
 namespace iwm_MsgBox
 {
 	public partial class Form1 : Form
 	{
-		private const string VERSION = "iwm_MsgBox_20240112";
+		private const string VERSION = "iwm_MsgBox";
 
-		private const string NL = "\r\n";
+		private static readonly string NL = Environment.NewLine;
+		private const string RgxNL = "\r?\n";
 
 		private static readonly string[] ARGS = Environment.GetCommandLineArgs();
 		private static readonly string PROGRAM = Path.GetFileName(ARGS[0]);
 
-		private static readonly int[] TEXTSIZE = { 10, 10 * 3 };
+		private static readonly int[] TEXTSIZE = [10, 10 * 3];
 
-		private readonly int[] TbResult_HEIGHT = { 0, 0 };
-		private readonly int[] BtnYes_POSX = { 0, 0 };
+		private static readonly int[] TbResult_HEIGHT = [0, 0];
+		private static readonly int[] BtnYes_POSX = [0, 0];
 
 		public Form1()
 		{
@@ -62,7 +62,7 @@ namespace iwm_MsgBox
 
 				if (Regex.IsMatch(_s1, @"^\-size\=\d+\,\d+"))
 				{
-					_as1 = _s1.Substring(6).Split(',');
+					_as1 = _s1[6..].Split(',');
 
 					iW = int.Parse(_as1[0]);
 					iH = int.Parse(_as1[1]);
@@ -71,7 +71,7 @@ namespace iwm_MsgBox
 					{
 						iW = MinimumSize.Width;
 					}
-					else if (iW > Screen.PrimaryScreen.WorkingArea.Width)
+					else if (iW > Screen.PrimaryScreen!.WorkingArea.Width)
 					{
 						iW = Screen.PrimaryScreen.WorkingArea.Width;
 					}
@@ -80,18 +80,18 @@ namespace iwm_MsgBox
 					{
 						iH = MinimumSize.Height;
 					}
-					else if (iH > Screen.PrimaryScreen.WorkingArea.Height)
+					else if (iH > Screen.PrimaryScreen!.WorkingArea.Height)
 					{
 						iH = Screen.PrimaryScreen.WorkingArea.Height;
 					}
 				}
 				else if (Regex.IsMatch(_s1, @"^\-title\=.+"))
 				{
-					Text = _s1.Substring(7);
+					Text = _s1[7..];
 				}
 				else if (Regex.IsMatch(_s1, @"^\-text\=.+"))
 				{
-					string _s2 = _s1.Substring(6);
+					string _s2 = _s1[6..];
 
 					// 特殊文字変換
 					_s2 = Regex.Replace(_s2, @"\\\\n|\r*\n", NL);
@@ -101,7 +101,7 @@ namespace iwm_MsgBox
 				}
 				else if (Regex.IsMatch(_s1, @"^\-textsize\=\d+"))
 				{
-					string _s2 = _s1.Substring(10);
+					string _s2 = _s1[10..];
 					int _i2 = int.Parse(_s2);
 
 					if (_i2 < TEXTSIZE[0])
@@ -118,20 +118,20 @@ namespace iwm_MsgBox
 				}
 				else if (Regex.IsMatch(_s1, @"^\-checkbox\=.*"))
 				{
-					CbAccept.Text = _s1.Substring(10);
+					CbAccept.Text = _s1[10..];
 					CbAccept.Checked = false;
 					CbAccept.Visible = true;
 					TbResult.Height = TbResult_HEIGHT[0];
 				}
 				else if (Regex.IsMatch(_s1, @"^\-button\=\d+\,\d+"))
 				{
-					_as1 = _s1.Substring(8).Split(',');
+					_as1 = _s1[8..].Split(',');
 					BtnYes.Visible = int.Parse(_as1[0]) > 0;
 					BtnNo.Visible = int.Parse(_as1[1]) > 0;
 				}
 				else if (Regex.IsMatch(_s1, @"^\-buttontext\=.+\,.+\,.+"))
 				{
-					_as1 = _s1.Substring(12).Split(',');
+					_as1 = _s1[12..].Split(',');
 					BtnYes.Text = _as1[0];
 					BtnNo.Text = _as1[1];
 					BtnCancel.Text = _as1[2];
@@ -166,11 +166,11 @@ namespace iwm_MsgBox
 					"【使い方】" + NL +
 					$"  {PROGRAM} [オプション] ..." + NL +
 					NL +
-					$"  (例) {PROGRAM} -size={MinimumSize.Width},{MinimumSize.Height} -title=\"タイトル\" -text=\"あいうえお\\\\nかき\\\\tくけこ\" -textsize={TEXTSIZE[0]} -checkbox=\"上記内容を承諾します。\" -button=1,1 -buttontext=\"はい\",\"いいえ\",\"閉じる\"" + NL +
+					$"  (例) {PROGRAM} -size={Size.Width},{Size.Height} -title=\"タイトル\" -text=\"あいうえお\\\\nかき\\\\tくけこ\" -textsize={TEXTSIZE[0]} -checkbox=\"上記内容を承諾します。\" -button=1,1 -buttontext=\"はい\",\"いいえ\",\"閉じる\"" + NL +
 					NL +
 					"【オプション】" + NL +
 					"  -size=width,height" + NL +
-					$"    (例) {MinimumSize.Width},{MinimumSize.Height}" + NL +
+					$"    (例) {Size.Width},{Size.Height}" + NL +
 					NL +
 					"  -title=\"\"" + NL +
 					"    (例) \"タイトル\"" + NL +
@@ -277,9 +277,65 @@ namespace iwm_MsgBox
 			TbResult.Copy();
 		}
 
+		private void CmsResult_関連付けられたアプリケーションで開く_Click(object sender, EventArgs e)
+		{
+			string s1 = "";
+
+			// ActiveControl がコンテナ（Panel等）の場合を考慮し、実際の入力コントロールを取得
+			Control currentControl = ActiveControl!;
+			while (currentControl is ContainerControl container && container.ActiveControl != null)
+			{
+				currentControl = container.ActiveControl;
+			}
+
+			switch (currentControl)
+			{
+				case TextBox tb:
+					s1 = tb.SelectedText;
+					break;
+			}
+
+			foreach (string _s1 in Regex.Split(s1.Trim(), RgxNL))
+			{
+				string target = _s1.Trim();
+				if (string.IsNullOrEmpty(target)) continue;
+
+				try
+				{
+					// .NET Core / .NET 5+ では UseShellExecute = true が必須
+					ProcessStartInfo psi = new()
+					{
+						FileName = target,
+						UseShellExecute = true // これがないとファイルやURLを直接開けません
+					};
+					_ = Process.Start(psi);
+				}
+				catch (Exception exp)
+				{
+					M($"[Err] {exp.Message}");
+					break;
+				}
+			}
+		}
+
+		private void CmsResult_ネット検索_URLを開く_Click(object sender, EventArgs e)
+		{
+			CmsResult_関連付けられたアプリケーションで開く_Click(sender, e);
+		}
+
 		private void CmsResult_ネット検索_Google_Click(object sender, EventArgs e)
 		{
 			SubNetSearch("https://www.google.co.jp/search?q=");
+		}
+
+		private void CmsResult_ネット検索_Google翻訳_Click(object sender, EventArgs e)
+		{
+			SubNetSearch("https://translate.google.com/?hl=ja&sl=auto&tl=ja&op=translate&text=");
+		}
+
+		private void CmsResult_ネット検索_Googleマップ_Click(object sender, EventArgs e)
+		{
+			SubNetSearch("https://www.google.co.jp/maps/search/");
 		}
 
 		private void CmsResult_ネット検索_YouTube_Click(object sender, EventArgs e)
@@ -294,30 +350,72 @@ namespace iwm_MsgBox
 
 		private void SubNetSearch(string url)
 		{
-			switch (ActiveControl)
+			string s1 = "";
+
+			// コンテナ（Panel等）の奥にあるTextBoxも正しく取得する
+			Control currentControl = ActiveControl!;
+			while (currentControl is ContainerControl container && container.ActiveControl != null)
 			{
-				case TextBox tb when tb.SelectionLength > 0:
-					_ = Process.Start(url + HttpUtility.UrlEncode(tb.SelectedText));
+				currentControl = container.ActiveControl;
+			}
+
+			switch (currentControl)
+			{
+				case TextBox tb:
+					s1 = tb.SelectedText;
 					break;
 			}
+
+			// URLエンコードと文字列置換
+			string targetUrl = url + HttpUtility.UrlEncode(Regex.Replace(s1.Trim(), RgxNL, " "));
+
+			try
+			{
+				// .NET 5以降（.NET 10含む）では UseShellExecute = true が必須
+				ProcessStartInfo psi = new()
+				{
+					FileName = targetUrl,
+					UseShellExecute = true // これがないとURLをブラウザで開けません
+				};
+				_ = Process.Start(psi);
+			}
+			catch (Exception exp)
+			{
+				M($"[Err] {exp.Message}");
+			}
 		}
-	}
 
-	public class Let
-	{
-		public static int Rtn = 0;
-	}
-
-	public class Program
-	{
-		[STAThread]
-		private static void Main()
+		public class Let
 		{
-			Application.EnableVisualStyles();
-			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new Form1());
-
-			Console.Write(Let.Rtn);
+			public static int Rtn { get; set; }
 		}
+
+		//--------------------------------------------------------------------------------
+		// Main()
+		//--------------------------------------------------------------------------------
+		public class Program
+		{
+			[STAThread]
+			private static void Main()
+			{
+				Application.EnableVisualStyles();
+				Application.SetCompatibleTextRenderingDefault(false);
+				Application.Run(new Form1());
+
+				Console.Write(Let.Rtn);
+			}
+		}
+
+		//--------------------------------------------------------------------------------
+		// MessageBox
+		//--------------------------------------------------------------------------------
+		private static void M(object obj)
+		{
+			_ = MessageBox.Show(
+				obj.ToString(),
+				AppDomain.CurrentDomain.FriendlyName
+			);
+		}
+
 	}
 }

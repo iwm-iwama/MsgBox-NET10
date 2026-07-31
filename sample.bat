@@ -11,8 +11,8 @@ for /f "usebackq delims=" %%s in (`"iwm_MsgBox.exe -center -size=600,400 -title=
 ::---------------------
 set SIZE=600,400
 set TITLE=変数利用による記述
-set TEXT= ^
-オプションを\\n ^
+set TEXT=^
+オプションを\\n^
 変数を利用して記述した例
 set TEXTSIZE=10
 set CHECKBOX=上記内容を承諾します。
